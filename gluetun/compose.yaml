@@ -1,0 +1,114 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=privado
+      - OPENVPN_USER=$privadoUser
+      - OPENVPN_PASSWORD=$privadoPassword
+      - SERVER_COUNTRIES=Netherlands
+    networks:
+      - gluetun
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    network_mode: service:gluetun
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=9090
+    volumes:
+      - /home/server/server-share/dockerfiles/Sabnzbd/Config:/config
+      - /home/server/server-share/mediafiles/downloads/:/downloads
+    depends_on:
+      - gluetun
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sabnzbd.rule=Host(`sabnzbd.schultzserver.ca`)
+      - traefik.http.routers.sabnzbd.entrypoints=https
+      - traefik.http.routers.sabnzbd.tls=true
+      - traefik.http.routers.sabnzbd.tls.certresolver=cloudflare
+      - traefik.http.services.sabnzbd.loadbalancer.server.port=9090
+      - traefik.http.routers.sabnzbd.middlewares=authentik@file
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    network_mode: service:gluetun
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=7878
+    volumes:
+      - /home/server/server-share/dockerfiles/Radarr/Config:/config
+      - /home/server/server-share/mediafiles/movies:/movies #optional
+      - /home/server/server-share/mediafiles/anime/movies:/anime
+      - /home/server/server-share/mediafiles/downloads/:/downloads #optional
+    depends_on:
+      - gluetun
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.radarr.rule=Host(`radarr.schultzserver.ca`)
+      - traefik.http.routers.radarr.entrypoints=https
+      - traefik.http.routers.radarr.tls=true
+      - traefik.http.routers.radarr.tls.certresolver=cloudflare
+      - traefik.http.services.radarr.loadbalancer.server.port=7878
+      - traefik.http.routers.radarr.middlewares=authentik@file
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    network_mode: service:gluetun
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8989
+    volumes:
+      - /home/server/server-share/dockerfiles/Sonarr/Config:/config
+      - /home/server/server-share/mediafiles/shows:/shows #optional
+      - /home/server/server-share/mediafiles/anime/shows:/anime
+      - /home/server/server-share/mediafiles/downloads:/downloads #optional
+    depends_on:
+      - gluetun
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.schultzserver.ca`)
+      - traefik.http.routers.sonarr.entrypoints=https
+      - traefik.http.routers.sonarr.tls=true
+      - traefik.http.routers.sonarr.tls.certresolver=cloudflare
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr.middlewares=authentik@file
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: service:gluetun
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=9696
+    volumes:
+      - /home/server/server-share/dockerfiles/Prowlarr/Config:/config
+    depends_on:
+      - gluetun
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.schultzserver.ca`)
+      - traefik.http.routers.prowlarr.entrypoints=https
+      - traefik.http.routers.prowlarr.tls=true
+      - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+      - traefik.http.routers.prowlarr.middlewares=authentik@file
+networks:
+  gluetun:
+    external: true

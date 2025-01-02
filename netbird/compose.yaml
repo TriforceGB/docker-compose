@@ -1,0 +1,123 @@
+version: "3.8"
+services:
+  dashboard:
+    image: netbirdio/dashboard:latest
+    container_name: netbird-dashboard
+    restart: no
+    environment:
+      NETBIRD_MGMT_API_ENDPOINT: https://netbird.schultzserver.ca:443
+      NETBIRD_MGMT_GRPC_API_ENDPOINT: https://netbird.schultzserver.ca:443
+      AUTH_AUDIENCE: ${NETBIRD_AUTH_CLIENT_ID}
+      AUTH_CLIENT_ID: ${NETBIRD_AUTH_CLIENT_ID}
+      #AUTH_CLIENT_SECRET: null
+      AUTH_AUTHORITY: https://authentik.schultzserver.ca/application/o/netbird/ #http://authentik-server:9000/application/o/netbird/
+      USE_AUTH0: false
+      AUTH_SUPPORTED_SCOPES: openid profile email offline_access api
+      #AUTH_REDIRECT_URI: null
+      #AUTH_SILENT_REDIRECT_URI: null
+      NETBIRD_TOKEN_SOURCE: accessToken
+      NGINX_SSL_PORT: 443
+      #      LETSENCRYPT_DOMAIN:  
+      #      LETSENCRYPT_EMAIL: 
+      # volumes:
+      #   - ${DOCKERFOLDER}/netbird/netbird-letsencrypt:/etc/letsencrypt/
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.netbird.entrypoints=https
+      - traefik.http.routers.netbird.rule=Host(`netbird.schultzserver.ca`)
+      - traefik.http.routers.netbird.tls=true
+      - traefik.http.routers.netbird.tls.certresolver=cloudflare
+      - traefik.http.routers.netbird.service=netbird@docker
+      - traefik.http.services.netbird.loadbalancer.server.port=80
+      - traefik.docker.network=frontbridge
+    networks:
+      - frontbridge
+      - backbridge
+  signal:
+    image: netbirdio/signal:latest
+    container_name: netbird-signal
+    restart: no
+    volumes:
+      - ${DOCKERFOLDER}/netbird/netbird-signal:/var/lib/netbird
+      # ports:
+      # - 10000:80 #10000?
+      # port and command for Let's Encrypt validation
+      #      - 443:443
+      # command:
+      #   - --letsencrypt-domain
+      #   - ""
+      #   - --log-file
+      #   - console
+    networks:
+      - backbridge
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.netbird-signal.entrypoints=https
+      - traefik.http.routers.netbird-signal.rule=Host(`netbird.schultzserver.ca`)
+        && PathPrefix(`/signalexchange.SignalExchange/`)
+      - traefik.http.routers.netbird-signal.tls=true
+      - traefik.http.routers.netbird-signal.tls.certresolver=cloudflare
+      - traefik.http.services.netbird-signal.loadbalancer.server.port=80
+      - traefik.http.services.netbird-signal.loadbalancer.server.scheme=h2c
+  management:
+    image: netbirdio/management:latest
+    container_name: netbird-management
+    restart: no
+    depends_on:
+      - dashboard
+    volumes:
+      - ${DOCKERFOLDER}/netbird/netbird-mgmt:/var/lib/netbird
+      - ${DOCKERFOLDER}/netbird/management.json:/etc/netbird/management.json
+      # ports: null
+      # - 9184:443 # API port 33073?
+      # command for Let's Encrypt validation without dashboard container
+      #    command: ["--letsencrypt-domain", "", "--log-file", "console"]
+    command:
+      - --port
+      - "443"
+      - --log-file
+      - console
+      - --log-level
+      - debug
+      - --disable-anonymous-metrics=false
+      - --single-account-mode-domain=netbird.schultzserver.ca
+      - --dns-domain=schultzserver.ca #netbird.selfhosted?
+      
+    networks:
+      - backbridge
+      - frontbridge
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.netbird-api.entrypoints=https
+      - traefik.http.routers.netbird-api.rule=Host(`netbird.schultzserver.ca`)
+        && PathPrefix(`/api`)
+      - traefik.http.routers.netbird-api.tls=true
+      - traefik.http.routers.netbird-api.tls.certresolver=cloudflare
+      - traefik.http.services.netbird-api.loadbalancer.server.port=443
+      - traefik.http.routers.netbird-api.service=netbird-management@docker
+      - traefik.http.routers.netbird-management.entrypoints=https
+      - traefik.http.routers.netbird-management.rule=Host(`netbird.schultzserver.ca`)
+        && PathPrefix(`/management.ManagementService/`)
+      - traefik.http.routers.netbird-management.tls=true
+      - traefik.http.routers.netbird-management.tls.certresolver=cloudflare
+      - traefik.http.services.netbird-management.loadbalancer.server.port=443
+      - traefik.http.services.netbird-management.loadbalancer.server.scheme=h2c
+      - traefik.http.routers.netbird-management.service=netbird-management@docker
+  coturn:
+    image: coturn/coturn:latest
+    container_name: netbird-coturn
+    restart: no
+    command:
+      - -c /etc/turnserver.conf
+    domainname: netbird.schultzserver.ca
+    volumes:
+      - ${DOCKERFOLDER}/netbird/turnserver.conf:/etc/turnserver.conf:ro
+    #      - ./privkey.pem:/etc/coturn/private/privkey.pem:ro
+    #      - ./cert.pem:/etc/coturn/certs/cert.pem:ro
+    network_mode: host
+networks:
+  frontbridge:
+    external: true
+  backbridge:
+    external: true

@@ -1,0 +1,51 @@
+services:
+  magicmirror:
+    container_name: magicmirror
+    image: karsten13/magicmirror:latest
+    restart: unless-stopped
+    volumes:
+      - /home/server/server-share/dockerfiles/magicmirror/mounts/config:/opt/magic_mirror/config
+      - /home/server/server-share/dockerfiles/magicmirror/mounts/modules:/opt/magic_mirror/modules
+      - /home/server/server-share/dockerfiles/magicmirror/mounts/css:/opt/magic_mirror/css
+    command:
+      - npm
+      - run
+      - server
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.magicmirror.rule=Host(`magicmirror.schultzserver.ca`)
+      - traefik.http.routers.magicmirror.entrypoints=https
+      - traefik.http.routers.magicmirror.tls=true
+      - traefik.http.routers.magicmirror.tls.certresolver=cloudflare
+      - traefik.http.services.magicmirror.loadbalancer.server.port=8080
+    networks:
+      - frontbridge
+  mmpm:
+    container_name: mmpm
+    image: karsten13/mmpm:latest
+    restart: unless-stopped
+    # ports:
+    # - 7890:7890
+    # - 7891:7891
+    # - 6789:6789
+    # - 8907:8907
+    volumes:
+      # Directory of your MagicMirror installation, edit left side for your needs
+      # In this example the MagicMirror installation is in /home/pi/magicmirror:
+      - /home/server/server-share/dockerfiles/magicmirror/mounts/config:/home/node/MagicMirror/config
+      - /home/server/server-share/dockerfiles/magicmirror/mounts/modules:/home/node/MagicMirror/modules
+      - /home/server/server-share/dockerfiles/magicmirror/mounts/css:/home/node/MagicMirror/css
+      - /home/server/server-share/dockerfiles/mmpm/config:/home/node/.config/mmpm
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mmpm.rule=Host(`mmpm.schultzserver.ca`)
+      - traefik.http.routers.mmpm.entrypoints=https
+      - traefik.http.routers.mmpm.tls=true
+      - traefik.http.routers.mmpm.tls.certresolver=cloudflare
+      - traefik.http.routers.mmpm.middlewares=authentik@file
+      - traefik.http.services.mmpm.loadbalancer.server.port=7890
+    networks:
+      - frontbridge
+networks:
+  frontbridge:
+    external: true

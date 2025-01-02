@@ -1,0 +1,62 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    volumes:
+      - /home/server/server-share/dockerfiles/homepage/default/config:/app/config
+      - /home/server/server-share/dockerfiles/homepage/default/images:/app/public/images
+      - /home/server/server-share/dockerfiles/homepage/default/icons:/app/public/icons
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=frontbridge
+      - traefik.http.routers.homepage.rule=Host(`homepage.schultzserver.ca`)
+      - traefik.http.routers.homepage.entrypoints=https
+      - traefik.http.routers.homepage.tls=true
+      - traefik.http.routers.homepage.tls.certresolver=cloudflare
+      - traefik.http.services.homepage.loadbalancer.server.port=3000
+      - traefik.http.routers.homepage.middlewares=authentik@file
+      - traefik.http.middlewares.redirect-to-homepage.redirectregex.regex=^https?://schultzserver.ca(.*)
+      - traefik.http.middlewares.redirect-to-homepage.redirectregex.replacement=https://homepage.schultzserver.ca
+      - traefik.http.middlewares.redirect-to-homepage.redirectregex.permanent=true
+      - traefik.http.routers.schultzserver.rule=Host(`schultzserver.ca`)
+      - traefik.http.routers.schultzserver.entrypoints=https
+      - traefik.http.routers.schultzserver.tls=true
+      - traefik.http.routers.schultzserver.tls.certresolver=cloudflare
+      - traefik.http.routers.schultzserver.middlewares=redirect-to-homepage@docker
+    networks:
+      - frontbridge
+      - backbridge
+      - gluetun
+  myhomepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: myhomepage
+    restart: unless-stopped
+    ports:
+      - 3001:3000
+    volumes:
+      - /home/server/server-share/dockerfiles/homepage/mypage/config:/app/config
+      - /home/server/server-share/dockerfiles/homepage/mypage/images:/app/public/images
+      - /home/server/server-share/dockerfiles/homepage/mypage/icons:/app/public/icons
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.myhomepage.rule=Host(`myhomepage.schultzserver.ca`)
+      - traefik.http.routers.myhomepage.entrypoints=https
+      - traefik.http.routers.myhomepage.tls=true
+      - traefik.http.routers.myhomepage.tls.certresolver=cloudflare
+      - traefik.http.routers.myhomepage.middlewares=authentik@file
+      - traefik.http.services.myhomepage.loadbalancer.server.port=3000
+      - traefik.docker.network=frontbridge
+    networks:
+      - frontbridge
+      - backbridge
+      - gluetun
+networks:
+  frontbridge:
+    external: true
+  backbridge:
+    external: true
+  gluetun:
+    external: true

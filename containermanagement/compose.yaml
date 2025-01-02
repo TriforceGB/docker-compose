@@ -1,0 +1,67 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock --log-level DEBUG
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/server/server-share/dockerfiles/portainer/data:/data
+    ports:
+      - 9443:9443
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portainer.rule=Host(`portainer.schultzserver.ca`)
+      - traefik.http.routers.portainer.entrypoints=https
+      - traefik.http.routers.portainer.tls=true
+      - traefik.http.routers.portainer.tls.certresolver=cloudflare
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+      - traefik.docker.network=frontbridge
+    networks:
+      - frontbridge
+  dockge:
+    image: louislam/dockge:latest
+    container_name: dockge
+    restart: always
+    ports:
+      - 5001:5001
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/server/server-share/dockerfiles/dockge/data:/app/data
+      - /home/server/server-share/dockerstacks:/home/server/server-share/dockerstacks
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dockge.rule=Host(`dockge.schultzserver.ca`)
+      - traefik.http.routers.dockge.entrypoints=https
+      - traefik.http.routers.dockge.tls=true
+      - traefik.http.routers.dockge.tls.certresolver=cloudflare
+      - traefik.http.routers.dockge.middlewares=authentik@file
+      - traefik.http.services.dockge.loadbalancer.server.port=5001
+      - traefik.docker.network=frontbridge
+    environment:
+      # Tell Dockge where is your stacks directory
+      - DOCKGE_STACKS_DIR=/home/server/server-share/dockerstacks
+    networks:
+      - frontbridge
+  dockerproxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    container_name: dockerproxy
+    environment:
+      - CONTAINERS=1 # Allow access to viewing containers
+      - SERVICES=1 # Allow access to viewing services (necessary when using Docker Swarm)
+      - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
+      - POST=0 # Disallow any POST operations (effectively read-only)
+    ports:
+      - 127.0.0.1:2375:2375
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Mounted as read-only
+    restart: unless-stopped
+    networks:
+      - backbridge
+networks:
+  frontbridge:
+    external: true
+  backbridge:
+    external: true
+  gluetun:
+    external: true
