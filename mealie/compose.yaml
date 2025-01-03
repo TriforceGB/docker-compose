@@ -1,12 +1,12 @@
 services:
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:latest #
+    image: ghcr.io/mealie-recipes/mealie:latest
     container_name: mealie
     restart: unless-stopped
     deploy:
       resources:
         limits:
-          memory: 1000M #
+          memory: 1000M
     volumes:
       - /home/server/server-share/dockerfiles/mealie/data/:/app/data/
     environment:
