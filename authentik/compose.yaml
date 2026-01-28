@@ -33,9 +33,9 @@ services:
       glance.description: Global Authentication
       glance.category: management
     networks:
-      - ${NETWORK_1}
-      - ${NETWORK_2}
-      - ${NETWORK_3}
+      - frontbridge
+      - backbridge
+      - gluetun
   worker:
     container_name: authentik-worker
     image: ghcr.io/goauthentik/server:latest
@@ -87,7 +87,7 @@ services:
       glance.parent: authentik
       glance.category: management
     networks:
-      - ${NETWORK_2}
+      - backbridge
   redis:
     container_name: authentik-redis
     image: docker.io/library/redis:alpine
@@ -108,16 +108,17 @@ services:
       glance.parent: authentik
       glance.category: management
     networks:
-      - ${NETWORK_2}
+      - backbridge
 volumes:
   database:
     driver: local
   redis:
     driver: local
+
 networks:
-  ${NETWORK_1}:
+  frontbridge:
     external: true
-  ${NETWORK_2}:
+  backbridge:
     external: true
-  ${NETWORK_3}:
+  gluetun:
     external: true
