@@ -27,8 +27,8 @@ services:
     image: lscr.io/linuxserver/sabnzbd:latest
     restart: unless-stopped
     network_mode: service:gluetun
-    depends_on:
-      - gluetun
+    # depends_on:
+    #   - gluetun
     volumes:
       - ${DOCKERFOLDER}/Sabnzbd/Config:/config
       - ${DOCKERFOLDER}/Sabnzbd/Downloads:/downloads
@@ -79,8 +79,8 @@ services:
     image: lscr.io/linuxserver/sonarr:latest
     restart: unless-stopped
     network_mode: service:gluetun
-    depends_on:
-      - gluetun
+    # depends_on:
+    #   - gluetun
     volumes:
       - ${DOCKERFOLDER}/Sonarr/Config:/config
       - ${MEDIAFOLDER}/shows:/shows
@@ -106,8 +106,8 @@ services:
     image: lscr.io/linuxserver/prowlarr:latest
     restart: unless-stopped
     network_mode: service:gluetun
-    depends_on:
-      - gluetun
+    # depends_on:
+    #   - gluetun
     volumes:
       - ${DOCKERFOLDER}/Prowlarr/Config:/config
     environment:
