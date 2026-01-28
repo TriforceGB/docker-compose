@@ -1,0 +1,76 @@
+name: fileshare
+services:
+  copyparty:
+    container_name: copyparty
+    image: copyparty/ac:latest
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - ${DOCKERFOLDER}/copyparty/priv:/cfg:z
+      - ${FILEPATH}:/pubdir:z
+    environment:
+      LD_PRELOAD: /usr/lib/libmimalloc-secure.so.NOPE
+      # enable mimalloc by replacing "NOPE" with "2" for a nice speed-boost (will use twice as much ram)
+      PYTHONUNBUFFERED: 1
+      # ensures log-messages are not delayed (but can reduce speed a tiny bit)
+    stop_grace_period: 15s # thumbnailer is allowed to continue finishing up for 10s after the shutdown signal
+    healthcheck:
+      # hide it from logs with "/._" so it matches the default --lf-url filter
+      test:
+        - CMD-SHELL
+        - wget --spider -q 127.0.0.1:3923/?reset=/._
+      interval: 1m
+      timeout: 2s
+      retries: 5
+      start_period: 15s
+    labels:
+      traefik.enable: true
+      traefik.http.routers.copyparty.tls: true
+      traefik.http.routers.copyparty.rule: Host("copyparty.${URL}")
+      traefik.http.services.copyparty.loadbalancer.server.port: 3923
+      glance.name: Copyparty
+      glance.icon: di:copyparty
+      glance.url: https://copyparty.${URL}
+      glance.description: File Server (Private)
+      glance.category: management
+    networks:
+      - frontbridge
+  pub_copyparty:
+    container_name: pub_copyparty
+    image: copyparty/ac:latest
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - ${DOCKERFOLDER}/dockerfiles/copyparty/pub:/cfg:z
+      - ${PUBFILE}:/pubdir:z
+    environment:
+      LD_PRELOAD: /usr/lib/libmimalloc-secure.so.NOPE
+      # enable mimalloc by replacing "NOPE" with "2" for a nice speed-boost (will use twice as much ram)
+      PYTHONUNBUFFERED: 1
+      # ensures log-messages are not delayed (but can reduce speed a tiny bit)
+    stop_grace_period: 15s # thumbnailer is allowed to continue finishing up for 10s after the shutdown signal
+    healthcheck:
+      # hide it from logs with "/._" so it matches the default --lf-url filter
+      test:
+        - CMD-SHELL
+        - wget --spider -q 127.0.0.1:3923/?reset=/._
+      interval: 1m
+      timeout: 2s
+      retries: 5
+      start_period: 15s
+    labels:
+      traefik.enable: true
+      traefik.http.routers.pubcopyparty.tls: true
+      traefik.http.routers.pubcopyparty.rule: Host("pubcopyparty.${URL}")
+      traefik.http.services.pubcopyparty.loadbalancer.server.port: 3923
+      glance.name: Copyparty Public
+      glance.icon: di:copyparty
+      glance.url: https://pubcopyparty.${URL}
+      glance.description: File Server (Public)
+      glance.category: management
+    networks:
+      - frontbridge
+
+networks:
+  frontbridge:
+    external: true
