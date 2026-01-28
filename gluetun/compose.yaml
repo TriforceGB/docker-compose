@@ -119,7 +119,7 @@ services:
       WEBUI_PORT: 9696
     labels:
       traefik.enable: true
-      traefik.http.routers.sonarr.tls: true
+      traefik.http.routers.prowlarr.tls: true
       traefik.http.routers.prowlarr.rule: Host("prowlarr.schultzserver.ca")
       traefik.http.services.prowlarr.loadbalancer.server.port: 9696
       traefik.http.routers.prowlarr.middlewares: authentik@file
