@@ -1,22 +1,23 @@
+name: networking
 services:
   traefik:
-    image: traefik:latest
     container_name: traefik
+    image: traefik:latest
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    # network_mode: service:tailscale-traefik
     ports:
       - 80:80
       - 443:443
       - 81:81
       - 444:444
+      - 8080:8080
     # - 443:443/tcp # Uncomment if you want HTTP3
     # - 443:443/udp # Uncomment if you want HTTP3
+    security_opt:
+      - no-new-privileges:true
+    # network_mode: service:tailscale-traefik
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN} # if using .env
       TRAEFIK_DASHBOARD_CREDENTIALS: ${TRAEFIK_DASHBOARD_CREDENTIALS}
-    env_file: .env # use .env
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -24,27 +25,32 @@ services:
       - ${DOCKERFOLDER}/traefik/data/acme.json:/acme.json
       - ${DOCKERFOLDER}/traefik/data/config.yml:/config.yml:ro
     labels:
-      - traefik.enable=true
-      - traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}
-      - traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
-      - traefik.http.routers.traefik.middlewares=traefik-https-redirect
-      - traefik.http.routers.traefik-secure.entrypoints=https
-      - traefik.http.routers.traefik-secure.rule=Host(`traefik.schultzserver.ca`)
-      - traefik.http.routers.traefik-secure.middlewares=traefik-auth
-      - traefik.http.routers.traefik-secure.middlewares=authentik@file
-      - traefik.http.routers.traefik-secure.tls=true
-      - traefik.http.routers.traefik-secure.tls.certresolver=cloudflare
-      - traefik.http.routers.traefik-secure.tls.domains[0].main=schultzserver.ca
-      - traefik.http.routers.traefik-secure.tls.domains[0].sans=*.schultzserver.ca
-      - traefik.http.routers.traefik-secure.service=api@internal
+      traefik.enable: true
+      traefik.http.middlewares.traefik-auth.basicauth.users: ${TRAEFIK_DASHBOARD_CREDENTIALS}
+      traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme: https
+      traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto: https
+      traefik.http.routers.traefik.middlewares: traefik-https-redirect
+      traefik.http.routers.traefik-secure.entrypoints: https
+      traefik.http.routers.traefik-secure.rule: Host("traefik.schultzserver.ca")
+      traefik.http.routers.traefik-secure.middlewares: traefik-auth
+      traefik.http.routers.traefik-secure.middlewares: authentik@file
+      traefik.http.routers.traefik-secure.tls: true
+      traefik.http.routers.traefik-secure.tls.certresolver: cloudflare
+      traefik.http.routers.traefik-secure.tls.domains[0].main: schultzserver.ca
+      traefik.http.routers.traefik-secure.tls.domains[0].sans: *.schultzserver.ca
+      traefik.http.routers.traefik-secure.service: api@internal
+      glance.name: Traefik
+      glance.icon: di:traefik
+      glance.url: traefik.${URL}
+      glance.description: Reverse Proxy
+      glance.category: management
     networks:
       - frontbridge
       - backbridge
       - gluetun
   adguard:
-    image: adguard/adguardhome:latest
     container_name: adguard
+    image: adguard/adguardhome:latest
     restart: unless-stopped
     volumes:
       - ${DOCKERFOLDER}/adguardhome/work:/opt/adguardhome/work
@@ -60,40 +66,54 @@ services:
       - 6060:6060/tcp
       - 85:85/tcp
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.adguard.rule=Host(`adguard.schultzserver.ca`)
-      - traefik.http.routers.adguard.entrypoints=https
-      - traefik.http.routers.adguard.tls=true
-      - traefik.http.routers.adguard.tls.certresolver=cloudflare
-      - traefik.http.routers.adguard.middlewares=authentik@file
-      - traefik.http.services.adguard.loadbalancer.server.port=3000
-      - traefik.docker.network=frontbridge
+      traefik.enable: true
+      traefik.http.routers.adguard.rule: Host("adguard.${URL}")
+      traefik.http.services.adguard.loadbalancer.server.port: 3000
+      traefik.http.routers.adguard.middlewares: authentik@file
+      glance.name: AdGuard
+      glance.icon: di:adguard
+      glance.url: adguard.${URL}
+      glance.description: Custom DNS Server
+      glance.category: management
     networks:
       - frontbridge
   cloudflared:
-    image: cloudflare/cloudflared:latest
     container_name: cloudflared
+    image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    environment:
-      - TUNNEL_TOKEN=$TUNNEL_TOKEN
     command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNELTOKEN}
+    labels:
+      glance.name: Cloudflared
+      glance.icon: di:Cloudflare
+      glance.url: https://dash.cloudflare.com
+      glance.description: Cloudflare Tunnel
+      glance.category: management
     networks:
       - backbridge
       - frontbridge
       - gluetun
   cloudflare-ddns:
-    image: timothyjmiller/cloudflare-ddns:latest
     container_name: cloudflare-ddns
+    image: timothyjmiller/cloudflare-ddns:latest
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    environment:
-      - PUID=1000
-      - PGID=1000
     volumes:
       - ${DOCKERFOLDER}/cloudflare-ddns/config.json:/config.json
+    environment:
+      PUID: 1000
+      PGID: 1000
+    labels:
+      glance.name: Cloudflare-DDNS
+      glance.icon: di:Cloudflare
+      glance.description: Cloudflare DDNS
+      glance.url: https://dash.cloudflare.com
+      glance.category: management
     networks:
       - backbridge
+
 networks:
   frontbridge:
     external: true

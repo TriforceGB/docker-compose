@@ -14,10 +14,6 @@ services:
       OPENVPN_PASSWORD: ${PRIVADO_PASSWORD}
       SERVER_COUNTRIES: ${PRIVADO_COUNTRY}
     labels:
-      traefik.enable: true
-      traefik.http.routers.sabnzbd.rule: Host("sabnzbd.${URL}")
-      traefik.http.services.sabnzbd.loadbalancer.server.port: 9090
-      traefik.http.routers.sabnzbd.middlewares: authentik@file
       glance.name: Gluetun
       glance.icon: di:gluetun
       glance.url: https://code.privado.dev/
@@ -41,6 +37,10 @@ services:
       TZ: Etc/UTC
       WEBUI_PORT: 9090
     labels:
+      traefik.enable: true
+      traefik.http.routers.sabnzbd.rule: Host("sabnzbd.${URL}")
+      traefik.http.services.sabnzbd.loadbalancer.server.port: 9090
+      traefik.http.routers.sabnzbd.middlewares: authentik@file
       glance.name: Sabnzbd
       glance.icon: di:sabnzbd
       glance.url: https://sabnzbd.${URL}
@@ -72,7 +72,7 @@ services:
       glance.icon: di:radarr
       glance.url: https://radarr.${URL}
       glance.description: Movie Manager
-      glance.parent: gluetun
+      glance.category: gluetun
   sonarr:
     container_name: sonarr
     image: lscr.io/linuxserver/sonarr:latest
@@ -99,7 +99,7 @@ services:
       glance.icon: di:sonarr
       glance.url: https://sonarr.${URL}
       glance.description: Show Manager
-      glance.parent: gluetun
+      glance.category: gluetun
   prowlarr:
     container_name: prowlarr
     image: lscr.io/linuxserver/prowlarr:latest
@@ -123,7 +123,7 @@ services:
       glance.icon: di:prowlarr
       glance.url: https://prowlarr.${URL}
       glance.description: Source Manager
-      glance.parent: gluetun
+      glance.category: gluetun
 networks:
   gluetun:
     external: true
