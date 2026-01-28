@@ -1,0 +1,62 @@
+name: n8n
+services:
+  n8n:
+    container_name: n8n
+    image: docker.n8n.io/n8nio/n8n
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - 5678:5678
+      - 5679:5679
+    volumes:
+      - ${DOCKERFOLDER}/n8n:/home/node/.n8n
+    environment:
+      GENERIC_TIMEZONE: America/Toronto
+      TZ: America/Toronto
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
+      N8N_RUNNERS_ENABLED: true
+      N8N_RUNNERS_BROKER_LISTEN_ADDRESS: 0.0.0.0
+      N8N_RUNNERS_AUTH_TOKEN: ${RUNNERTOKEN}
+      N8N_RUNNERS_MODE: external
+      N8N_HOST: https://n8n.${URL}
+      N8N_EDITOR_BASE_URL: https://n8n.${URL}
+      WEBHOOK_URL: https://n8n.${URL}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.n8n.tls: true
+      traefik.http.routers.n8n.rule: Host(`n8n.${URL}`)
+      traefik.http.services.n8n.loadbalancer.server.port: 5678
+      glance.name: n8n
+      glance.id: n8n
+      glance.icon: di:n8n
+      glance.url: https://n8n.${URL}
+      glance.description: Node Automation
+      glance.category: dev
+    networks:
+      - frontbridge
+      - backbridge
+  n8n-task-runner:
+    container_name: n8n-task-runner
+    image: n8nio/runners:latest
+    restart: unless-stopped
+    depends_on:
+      - n8n
+    volumes:
+      - ${DOCKERFOLDER}/n8n:/home/node/.n8n
+    environment:
+      N8N_RUNNERS_AUTH_TOKEN: ${RUNNERTOKEN}
+      # Connect directly to the Broker port
+      N8N_RUNNERS_TASK_BROKER_URI: http://n8n:5679
+    labels:
+      glance.name: n8n-task-runner
+      glance.parent: n8n
+      glance.category: dev
+    networks:
+      - backbridge
+
+networks:
+  frontbridge:
+    external: true
+  backbridge:
+    external: true
