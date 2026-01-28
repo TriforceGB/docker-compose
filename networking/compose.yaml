@@ -34,10 +34,11 @@ services:
       traefik.http.routers.traefik-secure.entrypoints: https
       traefik.http.routers.traefik-secure.rule: Host("traefik.schultzserver.ca")
       traefik.http.routers.traefik-secure.middlewares: traefik-auth
-      traefik.http.routers.traefik-secure.middlewares: authentik@file
+      # traefik.http.routers.traefik-secure.middlewares: authentik@file
       traefik.http.routers.traefik-secure.tls: true
       traefik.http.routers.traefik-secure.tls.certresolver: cloudflare
       traefik.http.routers.traefik-secure.tls.domains[0].main: schultzserver.ca
+      # traefik.http.routers.traefik-secure.tls.domains[0].sans: *.schultzserver.ca
       traefik.http.routers.traefik-secure.service: api@internal
       glance.name: Traefik
       glance.icon: di:traefik
