@@ -1,114 +1,130 @@
+name: gluetun
 services:
   gluetun:
-    image: qmcgaw/gluetun:latest
     container_name: gluetun
+    image: qmcgaw/gluetun:latest
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
-      - VPN_SERVICE_PROVIDER=privado
-      - OPENVPN_USER=$privadoUser
-      - OPENVPN_PASSWORD=$privadoPassword
-      - SERVER_COUNTRIES=Netherlands
+      VPN_SERVICE_PROVIDER: privado
+      OPENVPN_USER: ${PRIVADO_USER}
+      OPENVPN_PASSWORD: ${PRIVADO_PASSWORD}
+      SERVER_COUNTRIES: ${PRIVADO_COUNTRY}
+    labels:
+      glance.name: Gluetun
+      glance.icon: di:gluetun
+      glance.url: https://code.privado.dev/
+      glance.description: VPN Client for Container
+      glance.category: gluetun
     networks:
       - gluetun
+
   sabnzbd:
-    image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd
-    network_mode: service:gluetun
+    image: lscr.io/linuxserver/sabnzbd:latest
     restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - WEBUI_PORT=9090
-    volumes:
-      - /home/server/server-share/dockerfiles/Sabnzbd/Config:/config
-      - /home/server/server-share/mediafiles/downloads/:/downloads
+    network_mode: service:gluetun
     depends_on:
       - gluetun
+    volumes:
+      - ${DOCKERFOLDER}/Sabnzbd/Config:/config
+      - ${DOCKERFOLDER}/Sabnzbd/Downloads:/downloads
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+      WEBUI_PORT: 9090
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.sabnzbd.rule=Host(`sabnzbd.schultzserver.ca`)
-      - traefik.http.routers.sabnzbd.entrypoints=https
-      - traefik.http.routers.sabnzbd.tls=true
-      - traefik.http.routers.sabnzbd.tls.certresolver=cloudflare
-      - traefik.http.services.sabnzbd.loadbalancer.server.port=9090
-      - traefik.http.routers.sabnzbd.middlewares=authentik@file
+      traefik.enable: true
+      traefik.http.routers.sabnzbd.rule: Host("sabnzbd.${URL}")
+      traefik.http.services.sabnzbd.loadbalancer.server.port: 9090
+      traefik.http.routers.sabnzbd.middlewares: authentik@file
+      glance.name: Sabnzbd
+      glance.icon: di:sabnzbd
+      glance.url: https://sabnzbd.${URL}
+      glance.description: NZB Downloader
+      glance.parent: gluetun
   radarr:
-    image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
-    network_mode: service:gluetun
+    image: lscr.io/linuxserver/radarr:latest
     restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - WEBUI_PORT=7878
-    volumes:
-      - /home/server/server-share/dockerfiles/Radarr/Config:/config
-      - /home/server/server-share/mediafiles/movies:/movies #optional
-      - /home/server/server-share/mediafiles/anime/movies:/anime
-      - /home/server/server-share/mediafiles/downloads/:/downloads #optional
+    network_mode: service:gluetun
     depends_on:
       - gluetun
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+      WEBUI_PORT: 7878
+    volumes:
+      - ${DOCKERFOLDER}/Radarr/Config:/config
+      - ${MEDIAFOLDER}/movies:/movies
+      - ${MEDIAFOLDER}/anime/movies:/anime
+      - ${MEDIAFOLDER}/downloads:/downloads
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.radarr.rule=Host(`radarr.schultzserver.ca`)
-      - traefik.http.routers.radarr.entrypoints=https
-      - traefik.http.routers.radarr.tls=true
-      - traefik.http.routers.radarr.tls.certresolver=cloudflare
-      - traefik.http.services.radarr.loadbalancer.server.port=7878
-      - traefik.http.routers.radarr.middlewares=authentik@file
+      traefik.enable: true
+      traefik.http.routers.radarr.rule: Host("radarr.schultzserver.ca")
+      traefik.http.services.radarr.loadbalancer.server.port: 7878
+      traefik.http.routers.radarr.middlewares: authentik@file
+      glance.name: Radarr
+      glance.icon: di:radarr
+      glance.url: https://radarr.${URL}
+      glance.description: Movie Manager
+      glance.parent: gluetun
   sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
-    network_mode: service:gluetun
+    image: lscr.io/linuxserver/sonarr:latest
     restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - WEBUI_PORT=8989
-    volumes:
-      - /home/server/server-share/dockerfiles/Sonarr/Config:/config
-      - /home/server/server-share/mediafiles/shows:/shows #optional
-      - /home/server/server-share/mediafiles/anime/shows:/anime
-      - /home/server/server-share/mediafiles/downloads:/downloads #optional
+    network_mode: service:gluetun
     depends_on:
       - gluetun
+    volumes:
+      - ${DOCKERFOLDER}/Sonarr/Config:/config
+      - ${MEDIAFOLDER}/shows:/shows
+      - ${MEDIAFOLDER}/anime/shows:/anime
+      - ${MEDIAFOLDER}/downloads:/downloads
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+      WEBUI_PORT: 8989
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.sonarr.rule=Host(`sonarr.schultzserver.ca`)
-      - traefik.http.routers.sonarr.entrypoints=https
-      - traefik.http.routers.sonarr.tls=true
-      - traefik.http.routers.sonarr.tls.certresolver=cloudflare
-      - traefik.http.services.sonarr.loadbalancer.server.port=8989
-      - traefik.http.routers.sonarr.middlewares=authentik@file
+      traefik.enable: true
+      traefik.http.routers.sonarr.rule: Host("sonarr.schultzserver.ca")
+      traefik.http.services.sonarr.loadbalancer.server.port: 8989
+      traefik.http.routers.sonarr.middlewares: authentik@file
+      glance.name: Sonarr
+      glance.icon: di:sonarr
+      glance.url: https://sonarr.${URL}
+      glance.description: Show Manager
+      glance.parent: gluetun
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
-    network_mode: service:gluetun
+    image: lscr.io/linuxserver/prowlarr:latest
     restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - WEBUI_PORT=9696
-    volumes:
-      - /home/server/server-share/dockerfiles/Prowlarr/Config:/config
+    network_mode: service:gluetun
     depends_on:
       - gluetun
+    volumes:
+      - ${DOCKERFOLDER}/Prowlarr/Config:/config
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+      WEBUI_PORT: 9696
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.schultzserver.ca`)
-      - traefik.http.routers.prowlarr.entrypoints=https
-      - traefik.http.routers.prowlarr.tls=true
-      - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
-      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
-      - traefik.http.routers.prowlarr.middlewares=authentik@file
+      traefik.enable: true
+      traefik.http.routers.prowlarr.rule: Host("prowlarr.schultzserver.ca")
+      traefik.http.services.prowlarr.loadbalancer.server.port: 9696
+      traefik.http.routers.prowlarr.middlewares: authentik@file
+      glance.name: Prowlarr
+      glance.icon: di:prowlarr
+      glance.url: https://prowlarr.${URL}
+      glance.description: Source Manager
+      glance.parent: gluetun
 networks:
   gluetun:
     external: true
