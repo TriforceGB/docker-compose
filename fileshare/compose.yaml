@@ -1,4 +1,3 @@
-name: fileshare
 services:
   copyparty:
     container_name: copyparty
@@ -41,7 +40,7 @@ services:
     restart: unless-stopped
     user: 1000:1000
     volumes:
-      - ${DOCKERFOLDER}/dockerfiles/copyparty/pub:/cfg:z
+      - ${DOCKERFOLDER}/copyparty/pub:/cfg:z
       - ${PUBFILE}:/pubdir:z
     environment:
       LD_PRELOAD: /usr/lib/libmimalloc-secure.so.NOPE
@@ -70,7 +69,6 @@ services:
       glance.category: management
     networks:
       - frontbridge
-
 networks:
   frontbridge:
     external: true
