@@ -1,8 +1,79 @@
+name: authentik
 services:
-  postgresql:
-    image: docker.io/library/postgres:16-alpine
-    container_name: authentik-postgressql
+  server:
+    container_name: authentik-server
+    image: ghcr.io/goauthentik/server:latest
     restart: unless-stopped
+    command: server
+    depends_on:
+      - postgresql
+      - redis
+    ports:
+      - 9000:9000
+    volumes:
+      - ${DOCKERFOLDER}/authentik/media:/media
+      - ${DOCKERFOLDER}/authentik/custom-templates:/templates
+    environment:
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=${POSTGRES_USER}
+      - AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DB}
+      - AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD}
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
+      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.authentik.tls: true
+      traefik.http.routers.authentik.rule: Host("authentik.${URL}")
+      traefik.http.services.authentik.loadbalancer.server.port: 9000
+      glance.name: Authentik
+      glance.id: authentik
+      glance.icon: di:authentik
+      glance.url: https://authentik.${URL}
+      glance.description: Global Authentication
+      glance.category: management
+    networks:
+      - ${NETWORK_1}
+      - ${NETWORK_2}
+      - ${NETWORK_3}
+  worker:
+    container_name: authentik-worker
+    image: ghcr.io/goauthentik/server:latest
+    restart: unless-stopped
+    command: worker
+    user: root
+    depends_on:
+      - postgresql
+      - redis
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKERFOLDER}/authentik/media:/media
+      - ${DOCKERFOLDER}/authentik/certs:/certs
+      - ${DOCKERFOLDER}/authentik/custom-templates:/templates
+    environment:
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=${POSTGRES_USER}
+      - AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DB}
+      - AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD}
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
+      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    labels:
+      glance.name: Worker
+      glance.parent: authentik
+      glance.category: management
+    networks:
+      - ${NETWORK_2}
+  postgresql:
+    container_name: authentik-postgressql
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - database:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     healthcheck:
       test:
         - CMD-SHELL
@@ -11,19 +82,19 @@ services:
       interval: 30s
       retries: 5
       timeout: 5s
-    volumes:
-      - database:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+    labels:
+      glance.name: PostgreSQL
+      glance.parent: authentik
+      glance.category: management
     networks:
-      - backbridge
+      - ${NETWORK_2}
   redis:
-    image: docker.io/library/redis:alpine
     container_name: authentik-redis
-    command: --save 60 1 --loglevel warning
+    image: docker.io/library/redis:alpine
     restart: unless-stopped
+    command: --save 60 1 --loglevel warning
+    volumes:
+      - redis:/data
     healthcheck:
       test:
         - CMD-SHELL
@@ -32,76 +103,21 @@ services:
       interval: 30s
       retries: 5
       timeout: 3s
-    volumes:
-      - redis:/data
-    networks:
-      - backbridge
-  server:
-    image: ghcr.io/goauthentik/server:latest
-    container_name: authentik-server
-    restart: unless-stopped
-    command: server
-    environment:
-      - AUTHENTIK_REDIS__HOST=redis
-      - AUTHENTIK_POSTGRESQL__HOST=postgresql
-      - AUTHENTIK_POSTGRESQL__USER=${POSTGRES_USER}
-      - AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DB}
-      - AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD}
-      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
-      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
-    volumes:
-      - ${DOCKERFOLDER}/authentik/media:/media
-      - ${DOCKERFOLDER}/authentik/custom-templates:/templates
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.authentik.rule=Host(`authentik.schultzserver.ca`)
-      - traefik.http.routers.authentik.entrypoints=https
-      - traefik.http.routers.authentik.tls=true
-      - traefik.http.routers.authentik.tls.certresolver=cloudflare
-      - traefik.http.services.authentik.loadbalancer.server.port=9000
-      - traefik.docker.network=frontbridge
-    ports:
-      - 9000:9000
-    depends_on:
-      - postgresql
-      - redis
+      glance.name: Redis
+      glance.parent: authentik
+      glance.category: management
     networks:
-      - frontbridge
-      - backbridge
-      - gluetun
-  worker:
-    image: ghcr.io/goauthentik/server:latest
-    container_name: authentik-worker
-    restart: unless-stopped
-    command: worker
-    environment:
-      - AUTHENTIK_REDIS__HOST=redis
-      - AUTHENTIK_POSTGRESQL__HOST=postgresql
-      - AUTHENTIK_POSTGRESQL__USER=${POSTGRES_USER}
-      - AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DB}
-      - AUTHENTIK_POSTGRESQL__PASSWORD=${POSTGRES_PASSWORD}
-      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
-      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
-    user: root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${DOCKERFOLDER}/authentik/media:/media
-      - ${DOCKERFOLDER}/authentik/certs:/certs
-      - ${DOCKERFOLDER}/authentik/custom-templates:/templates
-    depends_on:
-      - postgresql
-      - redis
-    networks:
-      - backbridge
+      - ${NETWORK_2}
 volumes:
   database:
     driver: local
   redis:
     driver: local
 networks:
-  frontbridge:
+  ${NETWORK_1}:
     external: true
-  backbridge:
+  ${NETWORK_2}:
     external: true
-  gluetun:
+  ${NETWORK_3}:
     external: true
