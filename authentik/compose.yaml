@@ -63,7 +63,7 @@ services:
       glance.parent: authentik
       glance.category: management
     networks:
-      - ${NETWORK_2}
+      - backbridge
   postgresql:
     container_name: authentik-postgressql
     image: docker.io/library/postgres:16-alpine
