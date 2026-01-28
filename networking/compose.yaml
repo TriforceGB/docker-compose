@@ -15,6 +15,7 @@ services:
     security_opt:
       - no-new-privileges:true
     # network_mode: service:tailscale-traefik
+    env_file: .env # use .env
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN} # if using .env
       TRAEFIK_DASHBOARD_CREDENTIALS: ${TRAEFIK_DASHBOARD_CREDENTIALS}
