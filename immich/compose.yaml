@@ -94,7 +94,8 @@ services:
       glance.category: media
     networks:
       - frontbridge
-
+volumes:
+  model-cache: null
 networks:
   frontbridge:
     external: true
