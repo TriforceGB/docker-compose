@@ -86,7 +86,7 @@ services:
       - ${DOCKERFOLDER}/Sonarr/Config:/config
       - ${MEDIAFOLDER}/shows:/shows
       - ${MEDIAFOLDER}/anime/shows:/anime
-      - ${DOCKERFOLDER}/Sabnzbd/Downloadss:/downloads
+      - ${DOCKERFOLDER}/Sabnzbd/Downloads:/downloads
     environment:
       PUID: 1000
       PGID: 1000
