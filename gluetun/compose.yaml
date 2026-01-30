@@ -63,7 +63,7 @@ services:
       - ${DOCKERFOLDER}/Radarr/Config:/config
       - ${MEDIAFOLDER}/movies:/movies
       - ${MEDIAFOLDER}/anime/movies:/anime
-      - ${MEDIAFOLDER}/downloads:/downloads
+      - ${DOCKERFOLDER}/Sabnzbd/Downloads:/downloads
     labels:
       traefik.enable: true
       traefik.http.routers.radarr.tls: true
@@ -86,7 +86,7 @@ services:
       - ${DOCKERFOLDER}/Sonarr/Config:/config
       - ${MEDIAFOLDER}/shows:/shows
       - ${MEDIAFOLDER}/anime/shows:/anime
-      - ${MEDIAFOLDER}/downloads:/downloads
+      - ${DOCKERFOLDER}/Sabnzbd/Downloadss:/downloads
     environment:
       PUID: 1000
       PGID: 1000
