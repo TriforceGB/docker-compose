@@ -1,0 +1,87 @@
+name: media
+services:
+  jellyfin:
+    container_name: jellyfin
+    image: lscr.io/linuxserver/jellyfin:latest
+    restart: unless-stopped
+    volumes:
+      - ${DOCKERFOLDER}/jellyfin/config:/config
+      - ${DOCKERFOLDER}/jellyfin/cache:/cache
+      - ${MEDIAFOLDER}/shows:/shows
+      - ${MEDIAFOLDER}/movies:/movies
+      - ${MEDIAFOLDER}/anime:/anime
+      - ${MEDIAFOLDER}/old_music:/music
+      - ${MEDIAFOLDER}/homemovies:/homemovies
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+      JELLYFIN_PublishedServerUrl: http://jellyfin.${URL} #optional
+    labels:
+      traefik.enable: true
+      traefik.http.routers.jellyfin.tls: true
+      traefik.http.routers.jellyfin.rule: Host('jellyfin.${URL}')
+      traefik.http.services.jellyfin.loadbalancer.server.port: 8096
+      glance.name: Jellyfin
+      glance.icon: di:jellyfin
+      glance.description: Media Server
+      glance.category: media
+      glance.url: https://jellyfin.${URL}
+    networks:
+      - frontbridge
+  navidrome: 
+    container_name: navidrome
+    image: deluan/navidrome:latest
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - ${MEDIAFOLDER}/media:/music
+      - ${DOCKERFOLDER}/navidrome/data:/data
+    environment:
+      ND_CONFIGFILE: /data/navidrome.toml
+      ND_DATAFOLDER: /data
+      ND_LASTFM_APIKEY: ${LASTFMAPIKEY}
+      ND_LASTFM_SECRET: ${LASTFMSECRET}
+      ND_MUSICFOLDER: /music
+      ND_PORT: 4533
+    labels: 
+      traefik.enable: true
+      traefik.http.routers.navidrome.tls: true
+      traefik.http.routers.navidrome.rule: Host('navidrome.${URL}')
+      traefik.http.services.navidrome.loadbalancer.server.port: 4533
+      glance.name: Navidrome
+      glance.icon: di:navidrome
+      glance.description: Music Server
+      glance.category: media
+      glance.url: https://navidrome.${URL}
+    networks:
+      - frontbridge
+  jellyseerr:
+    container_name: jellyseerr
+    image: fallenbagel/jellyseerr:latest
+    restart: unless-stopped
+    volumes:
+      - ${DOCKERFOLDER}/jellyseerr/config:/app/config
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+    labels:
+      traefik.enable: true
+      traefik.http.routers.jellyseerr.tls: true
+      traefik.http.routers.jellyseerr.rule: Host('jellyseerr.${URL}')
+      traefik.http.services.jellyseerr.loadbalancer.server.port: 5055
+      glance.name: Jellyseerr
+      glance.icon: di:jellyseerr
+      glance.description: Media Request
+      glance.category: media
+      glance.url: https://jellyseerr.${URL}
+    networks:
+      - frontbridge
+      - gluetun
+
+networks:
+  frontbridge:
+    external: true
+  gluetun:
+    external: true
