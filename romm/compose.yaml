@@ -72,9 +72,11 @@ services:
       glance.parent: romm
     networks:
       - backbridge
+
 volumes:
   mysql_data:
   romm_resources:
+  romm_redis_data:
 
 
 
