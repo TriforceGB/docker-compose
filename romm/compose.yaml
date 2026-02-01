@@ -70,7 +70,16 @@ services:
       glance.name: mysql
       glance.category: media
       glance.parent: romm
+    networks:
+      - backbridge
 volumes:
   mysql_data:
   romm_resources:
-  romm_redis_data:
+
+
+
+networks:
+  frontbridge:
+    external: true
+  backbridge:
+    external: true
