@@ -63,7 +63,7 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.glance.tls: true
-      traefik.http.routers.glance.rule: Host('https://glance.${URL}')
+      traefik.http.routers.glance.rule: Host("https://glance.${URL}")
       traefik.http.services.glance.loadbalancer.server.port: 8080
       glance.name: Glance
       glance.description: Homeserver Dashboard
