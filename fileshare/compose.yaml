@@ -104,7 +104,7 @@ services:
     networks:
       - backbridge
   couchdb:
-    container_name: couchdb-for-ols
+    container_name: counchdb-obsidian-livesync
     image: couchdb:latest
     restart: unless-stopped
     user: 1000:1000
@@ -118,9 +118,6 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASS} #Please change as you like.
     networks:
       - backbridge
-
-
-    
 
 networks:
   frontbridge:
