@@ -67,7 +67,7 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.radarr.tls: true
-      traefik.http.routers.radarr.rule: Host("radarr.schultzserver.ca")
+      traefik.http.routers.radarr.rule: Host("radarr.${URL}")
       traefik.http.services.radarr.loadbalancer.server.port: 7878
       traefik.http.routers.radarr.middlewares: authentik@file
       glance.name: Radarr
@@ -95,7 +95,7 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.sonarr.tls: true
-      traefik.http.routers.sonarr.rule: Host("sonarr.schultzserver.ca")
+      traefik.http.routers.sonarr.rule: Host("sonarr.${URL}")
       traefik.http.services.sonarr.loadbalancer.server.port: 8989
       traefik.http.routers.sonarr.middlewares: authentik@file
       glance.name: Sonarr
@@ -120,7 +120,7 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.prowlarr.tls: true
-      traefik.http.routers.prowlarr.rule: Host("prowlarr.schultzserver.ca")
+      traefik.http.routers.prowlarr.rule: Host("prowlarr.${URL}")
       traefik.http.services.prowlarr.loadbalancer.server.port: 9696
       traefik.http.routers.prowlarr.middlewares: authentik@file
       glance.name: Prowlarr

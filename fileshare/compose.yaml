@@ -116,6 +116,16 @@ services:
     environment:
       - COUCHDB_USER=${COUCHDB_USER}  #Please change as you like.
       - COUCHDB_PASSWORD=${COUCHDB_PASS} #Please change as you like.
+    labels:
+      traefik.enable: true
+      traefik.http.routers.counchdb.tls: true
+      traefik.http.routers.counchdb.rule: Host("obsidian.${URL}")
+      traefik.http.services.counchdb.loadbalancer.server.port: 5984
+      glance.name: Obsidian Live Sync
+      glance.icon: di:obsidian
+      glance.url: https://obsidian.${URL}
+      glance.description: A Tool to Sync All Vault in Live Time
+      glance.category: other
     networks:
       - backbridge
 
