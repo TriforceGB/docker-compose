@@ -104,7 +104,7 @@ services:
     networks:
       - backbridge
   couchdb:
-    container_name: counchdb-obsidian-livesync
+    container_name: Crystal-Vault-LiveSync
     image: couchdb:latest
     restart: unless-stopped
     user: 1000:1000
