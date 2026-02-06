@@ -7,11 +7,11 @@ services:
     volumes:
       - ${DOCKERFOLDER}/jellyfin/config:/config
       - ${DOCKERFOLDER}/jellyfin/cache:/cache
-      - ${MEDIAFOLDER}/shows:/shows
-      - ${MEDIAFOLDER}/movies:/movies
-      - ${MEDIAFOLDER}/anime:/anime
-      - ${MEDIAFOLDER}/old_music:/music
-      - ${MEDIAFOLDER}/homemovies:/homemovies
+      - ${MEDIAFOLDER}/shows:/media-folder/shows
+      - ${MEDIAFOLDER}/movies:/media-folder/movies
+      - ${MEDIAFOLDER}/anime:/media-folder/anime
+      - ${MEDIAFOLDER}/old_music:/media-folder/music
+      - ${MEDIAFOLDER}/homemovies:/media-folder/homemovies
     environment:
       PUID: 1000
       PGID: 1000
