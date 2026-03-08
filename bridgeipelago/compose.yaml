@@ -1,0 +1,78 @@
+name: bridgeipelago
+services:
+  bridgeipelago:
+    container_name: bridgeipelago
+    image: bridgeipelago:latest
+    version: '3.8'
+    command: python bridgeipelago.py
+    restart: unless-stopped
+    working_dir: /bridgeipelago
+    volumes:
+      - ${DOCKERFOLDER}/bridgeipelago/logs:/bridgeipelago/logs
+      - ${DOCKERFOLDER}/bridgeipelago/RegistrationData:/bridgeipelago/RegistrationData
+      - ${DOCKERFOLDER}/bridgeipelago/ItemQueue:/bridgeipelago/ItemQueue
+      - ${DOCKERFOLDER}/bridgeipelago/ArchData:/bridgeipelago/ArchData
+    environment:
+      #---[Discord Config]---
+      DiscordToken: ${DISCORDTOKEN}
+      DiscordBroadcastChannel: ${DISCORDCHANNEL}
+      DiscordAlertUserID: ${DISCORDALERTUSERID}
+      DiscordDebugChannel: ${DISCORDDEBUGCHANNEL}
+      #---[Archipelago Config]---
+      ArchipelagoServer: wss://archipelago.gg
+      ArchipelagoPort: ${APPORT}
+      ArchipelagoPassword: ${APPASSWORD}
+      ArchipelagoBotSlot: Bridgeipelago
+      ArchipelagoTrackerURL: https://archipelago.gg/tracker/${APTRACKER}
+      ArchipelagoServerURL: https://archipelago.gg/room/${APROOM}
+      UniqueID: 1234567890 #?????
+      #---[Item Filter Config]---
+      BotItemSpoilTraps: 'false'
+      BotItemFilterLevel: 0
+      #---[Relay Config]---
+      ChatMessages: 'true'
+      ServerChatMessages: 'true'
+      GoalMessages: 'true'
+      ReleaseMessages: 'true'
+      CollectMessages: 'true'
+      CountdownMessages: 'true'
+      DeathlinkMessages: 'true'
+      #---[ ! Command Config ]---
+      APClientHelp: 'false'
+      APClientLicense: 'false'
+      APClientCountdown: 'false'
+      APClientOptions: 'false'
+      APClientAdmin: 'false'
+      APClientPlayers: 'false'
+      APClientStatus: 'false'
+      APClientRelease: 'false'
+      APClientCollect: 'false'
+      APClientRemaining: 'false'
+      APClientMissing: 'false'
+      APClientChecked: 'false'
+      APClientAlias: 'false'
+      APClientGetItem: 'false'
+      APClientHint: 'false'
+      APClientHintLocation: 'false'
+      APClientVideo: 'false'
+      #---[Drawbridge Config]---
+      DiscordBridgeEnabled: 'true'
+      #---[Meta Config]---
+      FlavorDeathlink: 'true'
+      DeathlinkLottery: 'false'
+      #---[Advanced Config]---
+      LoggingDirectory: /logs/
+      PlayerRegistrationDirectory: /RegistrationData/
+      PlayerItemQueueDirectory: /ItemQueue/
+      ArchipelagoDataDirectory: /ArchData/
+      QueueOverclock: 1
+      SnoozeCompletedGames: 'false'
+      JoinMessage: '<custom join message here>'
+      DebugMode: 'true'
+      DiscordJoinOnly: 'false'
+      SelfHostNoWeb: 'false'
+      CycleDiscord: 0
+    labels:
+      glance.name: bridgeipelago
+      glance.icon: di:archipelago
+      glance.url: https://archipelago.gg
