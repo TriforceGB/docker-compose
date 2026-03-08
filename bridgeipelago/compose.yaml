@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     working_dir: /bridgeipelago
     volumes:
-      - ${DOCKERFOLDER}/bridgeipelago/:/bridgeipelago/
+      - ${DOCKERFOLDER}/bridgeipelago:/bridgeipelago
     environment:
       #---[Discord Config]---
       DiscordToken: ${DISCORDTOKEN}
