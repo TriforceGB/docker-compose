@@ -6,10 +6,7 @@ services:
     restart: unless-stopped
     working_dir: /bridgeipelago
     volumes:
-      - ${DOCKERFOLDER}/bridgeipelago/logs:/bridgeipelago/logs
-      - ${DOCKERFOLDER}/bridgeipelago/RegistrationData:/bridgeipelago/RegistrationData
-      - ${DOCKERFOLDER}/bridgeipelago/ItemQueue:/bridgeipelago/ItemQueue
-      - ${DOCKERFOLDER}/bridgeipelago/ArchData:/bridgeipelago/ArchData
+      - ${DOCKERFOLDER}/bridgeipelago/:/bridgeipelago/
     environment:
       #---[Discord Config]---
       DiscordToken: ${DISCORDTOKEN}
@@ -23,7 +20,7 @@ services:
       ArchipelagoBotSlot: Bridgeipelago
       ArchipelagoTrackerURL: https://archipelago.gg/tracker/${APTRACKER}
       ArchipelagoServerURL: https://archipelago.gg/room/${APROOM}
-      UniqueID: 1234567890 #?????
+      UniqueID: 1234567890
       #---[Item Filter Config]---
       BotItemSpoilTraps: 'false'
       BotItemFilterLevel: 0
