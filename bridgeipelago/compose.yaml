@@ -1,6 +1,7 @@
 services:
   bridgeipelago:
     container_name: bridgeipelago
+    user: 1000:1000
     image: bridgeipelago:latest
     command: python bridgeipelago.py
     restart: unless-stopped
