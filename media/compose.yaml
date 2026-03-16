@@ -38,6 +38,7 @@ services:
       - ${MEDIAFOLDER}/music:/music
       - ${DOCKERFOLDER}/navidrome/data:/data
     environment:
+      ND_LASTFM_SCROBBLEFIRSTARTISTONLY: true
       ND_CONFIGFILE: /data/navidrome.toml
       ND_DATAFOLDER: /data
       ND_LASTFM_APIKEY: ${LASTFMAPIKEY}
