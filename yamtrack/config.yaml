@@ -1,0 +1,45 @@
+name: yamtrack
+services:
+  yamtrack:
+    container_name: yamtrack
+    image: ghcr.io/fuzzygrim/yamtrack
+    restart: unless-stopped
+    # ports:
+    #   - 8000:8000
+    depends_on:
+      - redis
+    volumes:
+      - ${DOCKERFOLDER}/yamtrack/db:/yamtrack/db
+    environment:
+      TZ: America/Toronto
+      SECRET: ${SECRET}
+      REDIS_URL: redis://redis:6379
+    labels:
+      traefik.enable: true
+      traefik.http.routers.yamtrack.tls: true
+      traefik.http.routers.yamtrack.rule: Host("yamtrack.${URL}")
+      traefik.http.services.yamtrack.loadbalancer.server.port: 8080
+      glance.name: yamtrack
+      glance.id: yamtrack
+      glance.icon: di:yamtrack
+      glance.url: https://yamtrack.${URL}
+      glance.description: Local Media Tracker
+      glance.category: media
+    networks:
+      - frontbridge
+      - backbridge
+    redis:
+      container_name: yamtrack-redis
+    image: redis:8-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    labels:
+      glance.name: redis
+      glance.parent: yamtrack
+      glance.icon: di:redis
+    networks:
+      - backbridge
+
+volumes:
+  redis_data:
