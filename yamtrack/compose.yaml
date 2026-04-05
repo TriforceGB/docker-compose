@@ -28,18 +28,18 @@ services:
     networks:
       - frontbridge
       - backbridge
-    redis:
-      container_name: yamtrack-redis
-    image: redis:8-alpine
-    restart: unless-stopped
-    volumes:
-      - redis_data:/data
-    labels:
-      glance.name: redis
-      glance.parent: yamtrack
-      glance.icon: di:redis
-    networks:
-      - backbridge
+  redis:
+    container_name: yamtrack-redis
+  image: redis:8-alpine
+  restart: unless-stopped
+  volumes:
+    - redis_data:/data
+  labels:
+    glance.name: redis
+    glance.parent: yamtrack
+    glance.icon: di:redis
+  networks:
+    - backbridge
 
 volumes:
   redis_data:
