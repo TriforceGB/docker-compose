@@ -2,18 +2,18 @@ name: yamtrack
 services:
   yamtrack:
     container_name: yamtrack
-    image: ghcr.io/fuzzygrim/yamtrack
+    image: ghcr.io/fuzzygrim/yamtrack:latest
     restart: unless-stopped
     # ports:
     #   - 8000:8000
-    depends_on:
-      - redis
-    volumes:
-      - ${DOCKERFOLDER}/yamtrack/db:/yamtrack/db
-    environment:
-      TZ: America/Toronto
-      SECRET: ${SECRET}
-      REDIS_URL: redis://redis:6379
+  depends_on:
+    - redis
+  volumes:
+    - ${DOCKERFOLDER}/yamtrack/db:/yamtrack/db
+  environment:
+    TZ: America/Toronto
+    SECRET: ${SECRET}
+    REDIS_URL: redis://redis:6379
     labels:
       traefik.enable: true
       traefik.http.routers.yamtrack.tls: true
@@ -30,22 +30,22 @@ services:
       - backbridge
   redis:
     container_name: yamtrack-redis
-  image: redis:8-alpine
-  restart: unless-stopped
-  volumes:
-    - redis_data:/data
-  labels:
-    glance.name: redis
+    image: redis:8-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    labels:
+      glance.name: redis
     glance.parent: yamtrack
     glance.icon: di:redis
-  networks:
-    - backbridge
+    networks:
+      - backbridge
 
-networks:
-  frontbridge:
-    external: true
+  networks:
+    frontbridge:
+      external: true
   backbridge:
     external: true
 
-volumes:
-  redis_data:
+  volumes:
+    redis_data:
