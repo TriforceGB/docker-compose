@@ -6,14 +6,14 @@ services:
     restart: unless-stopped
     # ports:
     #   - 8000:8000
-  depends_on:
-    - redis
-  volumes:
-    - ${DOCKERFOLDER}/yamtrack/db:/yamtrack/db
-  environment:
-    TZ: America/Toronto
-    SECRET: ${SECRET}
-    REDIS_URL: redis://redis:6379
+    depends_on:
+      - redis
+    volumes:
+      - ${DOCKERFOLDER}/yamtrack/db:/yamtrack/db
+    environment:
+      TZ: America/Toronto
+      SECRET: ${SECRET}
+      REDIS_URL: redis://redis:6379
     labels:
       traefik.enable: true
       traefik.http.routers.yamtrack.tls: true
@@ -36,8 +36,8 @@ services:
       - redis_data:/data
     labels:
       glance.name: redis
-    glance.parent: yamtrack
-    glance.icon: di:redis
+      glance.parent: yamtrack
+      glance.icon: di:redis
     networks:
       - backbridge
 
