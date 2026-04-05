@@ -41,5 +41,11 @@ services:
   networks:
     - backbridge
 
+networks:
+  frontbridge:
+    external: true
+  backbridge:
+    external: true
+
 volumes:
   redis_data:
