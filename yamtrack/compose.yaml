@@ -4,8 +4,8 @@ services:
     container_name: yamtrack
     image: ghcr.io/fuzzygrim/yamtrack:latest
     restart: unless-stopped
-    # ports:
-    #   - 8000:8000
+    ports:
+      - 8000:8000
     depends_on:
       - redis
     volumes:
