@@ -13,7 +13,8 @@ services:
     environment:
       TZ: America/Toronto
       SECRET: ${SECRET}
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://yamtrack-redis:6379
+      URLS: https://yamtrack.${URL}
     labels:
       traefik.enable: true
       traefik.http.routers.yamtrack.tls: true
